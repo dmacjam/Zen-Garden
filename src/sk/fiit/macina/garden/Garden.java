@@ -5,18 +5,19 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class Garden {
-	public int n,m;
-	public int[][] mapa;
+	private int n,m;
+	public int[][] mapka;
 	public int polObvod;
+	public int pocet_kamenov;
 	
 	static final int KAMEN = -1;
 	static final int PIESOK = 0;
 	
 	public Garden(File file) {	
 		readFromFile(file);
-		vykresliMapu();
-		iterujCezCisla();
-		vykresliMapu();
+		vykresliMapu(mapka);
+		//iterujCezCisla();
+		//vykresliMapu(mapka);
 	}
 	
 	/**
@@ -44,13 +45,13 @@ public class Garden {
 			n=Integer.parseInt(dvojica[0]);
 			m=Integer.parseInt(dvojica[1]);
 			
-			this.mapa=new int[n][m];
+			this.mapka=new int[n][m];
 			this.polObvod=n+m;
 			
 			//vytvor mapku
 			for(int i=0;i<n;i++){
 			  for(int j=0; j< m; j++){
-					mapa[i][j]=PIESOK;  
+					mapka[i][j]=PIESOK;  
 			  }
 			}
 			
@@ -58,7 +59,8 @@ public class Garden {
 			while (sc.hasNextLine()) {
 				riadok = sc.nextLine();
 				dvojica= riadok.split(" ");
-				mapa[Integer.parseInt(dvojica[0])][Integer.parseInt(dvojica[1])]=KAMEN;
+				mapka[Integer.parseInt(dvojica[0])][Integer.parseInt(dvojica[1])]=KAMEN;
+				pocet_kamenov++;
 			}
 
 		} catch (FileNotFoundException e) {
@@ -70,7 +72,7 @@ public class Garden {
 	 * Metoda ktora vypise mapku.
 	 * @param map
 	 */
-	public void vykresliMapu(){
+	public void vykresliMapu(int[][] mapa){
 		for(int i=0;i<n;i++){
 			for(int j=0;j<m;j++){
 				System.out.printf("%4d",mapa[i][j]);
@@ -113,7 +115,7 @@ public class Garden {
 	 * @param gen
 	 * @return
 	 */
-	public Coordinate getBumpDirection(Coordinate suradnica, int gen){
+	public Coordinate getBumpDirection(Coordinate suradnica, int gen, int[][] mapa){
 		Coordinate novaSur;
 		novaSur=new Coordinate(suradnica.r,suradnica.s,suradnica.dr,suradnica.ds,suradnica);
 		
@@ -176,11 +178,17 @@ public class Garden {
 	/**
 	 * Prechadzaj chromozomom a znac cestu.
 	 */
-	public void iterujCezCisla(){
-		int[] cisla = {25,0,-33,-30,-32,-34,-37,-36,5,-13,39,15,43,-41,16 };
+	public void iterujCezCisla(int[] cisla){
+		//int[] cisla = {25,0,-33,-30,-32,-34,-37,-36,5,-13,39,15,43,-41,16 };
 		Coordinate suradnica;
 		Coordinate novaSur;
 		Coordinate predchSur;
+		int poradiePrechodu=1;
+		
+		int[][] mapa=copyOriginalMap();
+		
+		
+		
 		
 		for(int i=0;i<cisla.length;i++){
 			suradnica=getDirection(cisla[i]);
@@ -192,7 +200,7 @@ public class Garden {
 					
 					if ( mapa[suradnica.r][suradnica.s] != PIESOK ){
 						predchSur=suradnica.predch;
-						suradnica=getBumpDirection(suradnica.predch, cisla[i] );
+						suradnica=getBumpDirection(suradnica.predch, cisla[i], mapa);
 						
 						//AK SA VRATI NULL, TAK NASTALO UVIAZNUTIE
 						if (suradnica == null){
@@ -210,12 +218,48 @@ public class Garden {
 						}
 					}
 					
-					mapa[suradnica.r][suradnica.s] = i + 1;
+					mapa[suradnica.r][suradnica.s] = poradiePrechodu;
 					novaSur=new Coordinate(suradnica.r + suradnica.dr, suradnica.s+suradnica.ds, suradnica.dr, suradnica.ds, suradnica);
 					suradnica=novaSur;
 				}
+			 poradiePrechodu++;
 			}
 		}
+		
+		vykresliMapu(mapa);
+	}
+	
+	
+	/**
+	 * Metoda ktora skopiruje original mapu a vrati ju.
+	 * @return
+	 */
+	public int[][] copyOriginalMap(){
+		int [][] mapa = new int[mapka.length][];
+		for(int i = 0; i < mapka.length; i++)
+		{
+		  int[] pom = mapka[i];
+		  int   aLength = pom.length;
+		  mapa[i] = new int[aLength];
+		  System.arraycopy(pom, 0, mapa[i], 0, aLength);
+		}
+	 return mapa;
+	}
+	
+	/**
+	 * Metoda ktora vrati cislo= O/2 + pocet_kamenov
+	 * @return
+	 */
+	public int getMaxGenome(){
+		return polObvod + pocet_kamenov;
+	}
+	
+	/**
+	 * Metoda ktora vrati velkost obvodu zahradky.
+	 * @return
+	 */
+	public int getObvod(){
+		return 2*polObvod;
 	}
 
 }
