@@ -11,10 +11,11 @@ public class GeneticSearch {
 	public int geneNumber;
 	
 	int[][] population;
-	public final int POPULATION_SIZE = 50;
-	public final float CROSS_RATE = 0.8f;
+	public final int POPULATION_SIZE = 500;
+	public final float CROSSOVER_RATE = 0.95f;
 	public final int GENERATIONS=500;
-	public final float MUTATION_RATE = 0.05f;
+	public final float MUTATION_RATE_MIN = 0.05f;
+	public final float MUTATION_RATE_MAX = 0.5f;
 	
 	
 	public GeneticSearch(Garden garden) {
@@ -37,10 +38,14 @@ public class GeneticSearch {
 		}
 		
 		int pocet=0;
+		float mutationActuall=MUTATION_RATE_MIN;
+		int maxPrevious=0; 
+		int sequenceOfMax=0;
 		//VELKY WHILE
 		while (pocet++ < GENERATIONS) {
 			int[][] newPopulation = new int[POPULATION_SIZE][geneNumber];
 			int max, max_i, min, min_i, sum = 0;
+			
 
 			for (int i = 0; i < POPULATION_SIZE; i++) {
 				fitnessValues[i] = garden.iterujCezCisla(population[i],false);
@@ -62,13 +67,27 @@ public class GeneticSearch {
 					min_i = i;
 				}
 			}
-			System.out.println("POP: "+pocet+" MAX: " + max + " MIN: " + min + " AVG: " + sum / POPULATION_SIZE);
+			System.out.println("POP: "+pocet+" MAX: " + max + " MIN: " + min + " AVG: " + sum / POPULATION_SIZE+" MUT_RATE: "+mutationActuall);
 			
 			if ( max == garden.pocetNaPohrabanie ){
 				garden.iterujCezCisla(population[max_i], true);
+				printChromosome(population[max_i]);
 				break;
 			}
-
+			
+			
+			if (max != maxPrevious || mutationActuall > MUTATION_RATE_MAX ){
+				maxPrevious=max;
+				sequenceOfMax=0;
+				mutationActuall=MUTATION_RATE_MIN;
+			}
+			else {
+				sequenceOfMax++;
+				if (mutationActuall < MUTATION_RATE_MAX ){
+					mutationActuall += 0.01f;
+				}
+			}
+			
 			// UPRAVA HODNOT FITNESS
 			for (int i = 0; i < POPULATION_SIZE; i++) {
 				fitnessValues[i] = fitnessValues[i] - min;
@@ -79,7 +98,7 @@ public class GeneticSearch {
 				int individual1 = getRandomIndividual(fitnessValues, sum);
 				int individual2 = getRandomIndividual(fitnessValues, sum);
 
-				if (Math.random() < CROSS_RATE) { // IDE SA KRIZIT
+				if (Math.random() < CROSSOVER_RATE) { 	// IDE SA KRIZIT
 					for (int j = 0; j < geneNumber; j++) {
 						if (Math.random() < 0.5) {
 							newPopulation[i][j] = population[individual1][j];
@@ -93,8 +112,26 @@ public class GeneticSearch {
 					// MUTACIA
 			        for(int child=0;child<2;child++){
                         for(int j=0;j<geneNumber;j++){
-                            if(Math.random() < MUTATION_RATE){
-                                newPopulation[i+child][j] = (int) (Math.random() * garden.getObvod());
+                            if(Math.random() < mutationActuall ){
+                            	int mutationNumber=(int) (Math.random() * garden.getObvod());
+                            	if ( Math.random() < 0.5){
+                            		mutationNumber *= -1; 
+                            	}
+                            	int index=-1;
+                            	for(int k=0;k<geneNumber;k++){
+                            		if ( newPopulation[i+child][k] == mutationNumber){
+                            			index=k;
+                            		}
+                            	}
+                                
+                            	if (index != -1){
+                            		int pom=newPopulation[i+child][j];
+                            		newPopulation[i+child][j]=newPopulation[i+child][index];
+                            		newPopulation[i+child][index]=pom;
+                            	}
+                            	else{
+                            		newPopulation[i+child][j]=mutationNumber;
+                            	}
                             }
                         }
                     }
@@ -166,7 +203,17 @@ public class GeneticSearch {
         }
 	    return 0;	
 	}
-
+	
+	
+	/**
+	 * Vypise chromozom.
+	 * @param chromozome
+	 */
+	public void printChromosome(int[] chromozome){
+		for(int i=0;i<geneNumber;i++){
+			System.out.printf("%4d",chromozome[i]);
+		}
+	}
 	
 
 }
