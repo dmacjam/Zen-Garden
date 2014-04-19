@@ -9,13 +9,15 @@ public class Garden {
 	public int[][] mapka;
 	public int polObvod;
 	public int pocet_kamenov;
+	public int pocetNaPohrabanie;
 	
 	static final int KAMEN = -1;
 	static final int PIESOK = 0;
 	
 	public Garden(File file) {	
 		readFromFile(file);
-		vykresliMapu(mapka);
+		//vykresliMapu(mapka);
+		this.pocetNaPohrabanie=(n*m)-pocet_kamenov;
 		//iterujCezCisla();
 		//vykresliMapu(mapka);
 	}
@@ -119,7 +121,7 @@ public class Garden {
 		Coordinate novaSur;
 		novaSur=new Coordinate(suradnica.r,suradnica.s,suradnica.dr,suradnica.ds,suradnica);
 		
-		System.out.println("Naraz "+novaSur.toString());
+		//System.out.println("Naraz "+novaSur.toString());
 		
 		if ( novaSur.dr != 0 ){			//NARAZILI SME A STUPALI SME PO RIADKOCH
 			novaSur.dr=0;
@@ -178,7 +180,7 @@ public class Garden {
 	/**
 	 * Prechadzaj chromozomom a znac cestu.
 	 */
-	public void iterujCezCisla(int[] cisla){
+	public int iterujCezCisla(int[] cisla, boolean vypis){
 		//int[] cisla = {25,0,-33,-30,-32,-34,-37,-36,5,-13,39,15,43,-41,16 };
 		Coordinate suradnica;
 		Coordinate novaSur;
@@ -204,7 +206,7 @@ public class Garden {
 						
 						//AK SA VRATI NULL, TAK NASTALO UVIAZNUTIE
 						if (suradnica == null){
-							System.out.println("Cislo "+cisla[i]+" uviazlo");
+							//System.out.println("Cislo "+cisla[i]+" uviazlo");
 							while (predchSur != null){
 								mapa[predchSur.r][predchSur.s]=0;
 								predchSur=predchSur.predch;
@@ -226,8 +228,27 @@ public class Garden {
 			}
 		}
 		
-		vykresliMapu(mapa);
+		if ( vypis == true) {
+			vykresliMapu(mapa);
+		}
+		return countNotRaked(mapa);
 	}
+	
+	
+	public int countNotRaked(int[][] mapa){
+		int pocitadloNepohrabanych=0;
+		for(int i=0;i<n;i++){
+			for(int j=0;j<m;j++){
+				if ( mapa[i][j] == PIESOK){
+					pocitadloNepohrabanych++;
+				}
+			}
+		}
+	  
+	  //float f= (float) (pocetNaPohrabanie-pocitadlo) / pocetNaPohrabanie;
+	  return pocetNaPohrabanie-pocitadloNepohrabanych;
+	}
+	
 	
 	
 	/**
@@ -260,6 +281,10 @@ public class Garden {
 	 */
 	public int getObvod(){
 		return 2*polObvod;
+	}
+	
+	public int getPocetNaPohrabanie(){
+		return pocetNaPohrabanie;
 	}
 
 }
