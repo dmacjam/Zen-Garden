@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
+/**
+ * Trieda reprezentujuca zahradku, funkcie na pohyb po zahradke...
+ * @author Maci ThinkPad
+ *
+ */
 public class Garden {
 	private int n,m;
 	public int[][] mapka;
@@ -74,7 +79,7 @@ public class Garden {
 	 * Metoda ktora vypise mapku.
 	 * @param map
 	 */
-	public void vykresliMapu(int[][] mapa){
+	public void printMap(int[][] mapa){
 		for(int i=0;i<n;i++){
 			for(int j=0;j<m;j++){
 				System.out.printf("%4d",mapa[i][j]);
@@ -178,9 +183,11 @@ public class Garden {
 	}
 	
 	/**
-	 * Prechadzaj chromozomom a znac cestu.
+	 * Pohrab mapku podla chromozomu a znac cestu.
+	 * @param chromozome Chromozom podla ktoreho sa hrabe.
+	 * @param vypis Ak je true, vykresli sa pohrabana zahradka.
 	 */
-	public int iterujCezCisla(int[] cisla, boolean vypis){
+	public int rakeGarden(int[] chromozome, boolean vypis){
 		//int[] cisla = {25,0,-33,-30,-32,-34,-37,-36,5,-13,39,15,43,-41,16 };
 		Coordinate suradnica;
 		Coordinate novaSur;
@@ -189,11 +196,9 @@ public class Garden {
 		
 		int[][] mapa=copyOriginalMap();
 		
-		
-		
-		
-		for(int i=0;i<cisla.length;i++){
-			suradnica=getDirection(cisla[i]);
+
+		for(int i=0;i<chromozome.length;i++){
+			suradnica=getDirection(chromozome[i]);
 			
 			
 			if ( mapa[suradnica.r][suradnica.s] == 0) {
@@ -202,7 +207,7 @@ public class Garden {
 					
 					if ( mapa[suradnica.r][suradnica.s] != PIESOK ){
 						predchSur=suradnica.predch;
-						suradnica=getBumpDirection(suradnica.predch, cisla[i], mapa);
+						suradnica=getBumpDirection(suradnica.predch, chromozome[i], mapa);
 						
 						//AK SA VRATI NULL, TAK NASTALO UVIAZNUTIE
 						if (suradnica == null){
@@ -214,7 +219,7 @@ public class Garden {
 							break;
 						}
 						
-						//AK SA VRATILA SURADNICA MIMO,TAK SME VYSLI VON ZO ZAHRADY, OK
+						//AK SA VRATILA SURADNICA MIMO,TAK SME VYSLI VON ZO ZAHRADY, JE TO OK
 						if ( !inBounds(suradnica.r, suradnica.s)){
 							break;
 						}
@@ -229,13 +234,18 @@ public class Garden {
 		}
 		
 		if ( vypis == true) {
-			vykresliMapu(mapa);
+			printMap(mapa);
 		}
-		return countNotRaked(mapa);
+		return countRaked(mapa);
 	}
 	
 	
-	public int countNotRaked(int[][] mapa){
+	/**
+	 * Spocitaj pocet pohrabanych.
+	 * @param mapa
+	 * @return
+	 */
+	public int countRaked(int[][] mapa){
 		int pocitadloNepohrabanych=0;
 		for(int i=0;i<n;i++){
 			for(int j=0;j<m;j++){
@@ -283,6 +293,10 @@ public class Garden {
 		return 2*polObvod;
 	}
 	
+	/**
+	 * Metoda ktora vrati pocet policok ktore treba pohrabat.
+	 * @return
+	 */
 	public int getPocetNaPohrabanie(){
 		return pocetNaPohrabanie;
 	}

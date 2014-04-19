@@ -6,11 +6,18 @@ import java.util.List;
 
 import sk.fiit.macina.garden.Garden;
 
+/**
+ * Trieda ktora predstavuje logiku genetickeho algoritmu.
+ * @author Maci ThinkPad
+ *
+ */
 public class GeneticSearch {
 	public Garden garden;
 	public int geneNumber;
 	
 	int[][] population;
+	
+	//KONSTANTY KTORE SA DAJU NASTAVOVAT
 	public final int POPULATION_SIZE = 150;
 	public final float CROSSOVER_RATE = 0.95f;
 	public final int GENERATIONS=5000;
@@ -27,7 +34,7 @@ public class GeneticSearch {
 	
 	
 	/**
-	 * Hlavna funkcia geneticky algoritmus.
+	 * Hlavna funkcia genetickeho algoritmu.
 	 */
 	public void genetic(){
 		int[] fitnessValues=new int[POPULATION_SIZE];
@@ -38,24 +45,24 @@ public class GeneticSearch {
 			population[i]=generateChromozome();
 		}
 		
-		int pocet=0;
+		int generationCounter=0;
 		float mutationActuall=MUTATION_RATE_MIN;
 		int maxPrevious=0; 
 		//VYVOJ GENERACII
-		while (pocet++ < GENERATIONS) {
-			int[][] newPopulation = new int[POPULATION_SIZE][geneNumber];
-			int max, max_i, min, min_i, sum = 0;
+		while (generationCounter++ < GENERATIONS) {
+			int[][] potomok = new int[POPULATION_SIZE][geneNumber];
+			int max, max_i, min, sum = 0;
 			
-
+			//POHRAB ZAHRADU A VYPOCITAJ FITNESS FUNKCIU
 			for (int i = 0; i < POPULATION_SIZE; i++) {
-				fitnessValues[i] = garden.iterujCezCisla(population[i],false);
+				fitnessValues[i] = garden.rakeGarden(population[i],false);
 			}
 			
 			// VYPOCET MAX A MIN HODNOT FITNESS
 			max = fitnessValues[0];
 			max_i = 0;
 			min = fitnessValues[0];
-			min_i = 0;
+
 			for (int i = 0; i < POPULATION_SIZE; i++) {
 				sum += fitnessValues[i];
 				if (fitnessValues[i] > max) {
@@ -64,21 +71,20 @@ public class GeneticSearch {
 				}
 				if (fitnessValues[i] < min) {
 					min = fitnessValues[i];
-					min_i = i;
 				}
 			}
-			System.out.println("POP: "+pocet+" MAX: " + max + " MIN: " + min + " AVG: " + sum / POPULATION_SIZE+" MUT_RATE: "+mutationActuall);
+			System.out.printf("POP: %5d MAX: %4d MIN: %4d AVG: %4d MUT_RATE: %1.2f \n",generationCounter,max,min,sum / POPULATION_SIZE,mutationActuall);
 			
 			//AK SME NASLI RIESENIE KONIEC
 			if ( max == garden.pocetNaPohrabanie ){
-				garden.iterujCezCisla(population[max_i], true);
+				garden.rakeGarden(population[max_i], true);
 				printChromosome(population[max_i]);
 				long endTime=System.currentTimeMillis();
 				System.out.println("\nCelkovy cas: "+(endTime-startTime)+" ms.");
 				break;
 			}
 			
-			//UPRAVA HODNOT MUTACIE AK SME V LOKALNOM MAXIME
+			//UPRAVA HODNOT MUTACIE AK SME UZ DLHO V LOKALNOM MAXIME
 			if (max != maxPrevious || mutationActuall >= MUTATION_RATE_MAX ){
 				maxPrevious=max;
 				mutationActuall=MUTATION_RATE_MIN;
@@ -99,11 +105,12 @@ public class GeneticSearch {
 //				int individual1 = getFromRoulette(fitnessValues, sum);
 //				int individual2 = getFromRoulette(fitnessValues, sum);
 				
-				int individual1 = getFromTournament(fitnessValues);
-				int individual2 = getFromTournament(fitnessValues);
+				int individual1 = getFromTournament(fitnessValues,true);
+				int individual2 = getFromTournament(fitnessValues,true);
 
 				if (Math.random() < CROSSOVER_RATE) { 	// IDE SA KRIZIT
-//					for (int j = 0; j < geneNumber; j++) {			//NAHODNE KOPIROVANIE GENOV DETOM BUD Z JEDNEHO ALEBO DRUHEHO
+//					//UNIFORM CROSSOVER
+//					for (int j = 0; j < geneNumber; j++) {			
 //						if (Math.random() < 0.5) {
 //							newPopulation[i][j] = population[individual1][j];
 //							newPopulation[i + 1][j] = population[individual2][j];
@@ -113,21 +120,45 @@ public class GeneticSearch {
 //						}
 //					}
 					
-					//SIMPLE CROSSOVER
+//					//SIMPLE CROSSOVER
+//					int indexLimit=(int) (Math.random() * geneNumber);
+//					for(int j=0;j<geneNumber;j++){
+//						if (j < indexLimit){
+//							potomok[i][j]= population[individual1][j];
+//							potomok[i+1][j]= population[individual2][j];
+//						}
+//						else{
+//							potomok[i][j]= population[individual2][j];
+//							potomok[i+1][j]= population[individual1][j];
+//						}
+//						
+//					}
+					
+					//TWO POINT CROSSOVER
 					int indexLimit=(int) (Math.random() * geneNumber);
+					int indexLimit2=(int) (Math.random() * geneNumber);
+					if ( indexLimit > indexLimit2 ){
+						int pom=indexLimit;
+						indexLimit=indexLimit2;
+						indexLimit2=pom;
+					}
 					for(int j=0;j<geneNumber;j++){
 						if (j < indexLimit){
-							newPopulation[i][j]= population[individual1][j];
-							newPopulation[i+1][j]= population[individual2][j];
+							potomok[i][j]= population[individual1][j];
+							potomok[i+1][j]= population[individual2][j];
+						}
+						else if ( j < indexLimit2 ){
+							potomok[i][j]= population[individual2][j];
+							potomok[i+1][j]= population[individual1][j];
 						}
 						else{
-							newPopulation[i][j]= population[individual2][j];
-							newPopulation[i+1][j]= population[individual1][j];
+							potomok[i][j]= population[individual1][j];
+							potomok[i+1][j]= population[individual2][j];
 						}
 						
 					}
 
-					// MUTACIA
+					// MUTACIA DETI
 			        for(int child=0;child<2;child++){
                         for(int j=0;j<geneNumber;j++){
                             if(Math.random() < mutationActuall ){
@@ -137,29 +168,29 @@ public class GeneticSearch {
                             	}
                             	int index=-1;
                             	for(int k=0;k<geneNumber;k++){		//ZISTI CI SA TAM NACHADZA TAKE CISLO
-                            		if ( newPopulation[i+child][k] == mutationNumber){
+                            		if ( potomok[i+child][k] == mutationNumber){
                             			index=k;
                             			break;
                             		}
                             	}
                                 
                             	if (index != -1){			//NACHADZA SA,TAK VYMEN HODNOTY NA INDEXOCH
-                            		int pom=newPopulation[i+child][j];
-                            		newPopulation[i+child][j]=newPopulation[i+child][index];
-                            		newPopulation[i+child][index]=pom;
+                            		int pom=potomok[i+child][j];
+                            		potomok[i+child][j]=potomok[i+child][index];
+                            		potomok[i+child][index]=pom;
                             	}
                             	else{						//NENACHADZA SA, TAK ZMEN HODNOTU ZA VYGENEROVANU
-                            		newPopulation[i+child][j]=mutationNumber;
+                            		potomok[i+child][j]=mutationNumber;
                             	}
                             }
                         }
                     }
 					
 
-				} else { // NIE JE KRIZENIE, LEN SKOPIRUJ
+				} else { // NIE JE KRIZENIE, LEN SKOPIRUJ DO DALSEJ GENERACIE
 					for (int j = 0; j < geneNumber; j++) {
-						newPopulation[i][j] = population[individual1][j];
-						newPopulation[i + 1][j] = population[individual2][j];
+						potomok[i][j] = population[individual1][j];
+						potomok[i + 1][j] = population[individual2][j];
 					}
 				}
 			}
@@ -167,9 +198,9 @@ public class GeneticSearch {
 			//ELITIZMUS- NAJLEPSIEHO JEDINCA PONECHAJ
 			for (int i = 0; i < geneNumber; i++)
 			{
-				newPopulation[0][i] = population[max_i][i];
+				potomok[0][i] = population[max_i][i];
 			}
-			population = newPopulation;
+			population = potomok;
 		}
 	}
 	
@@ -183,7 +214,7 @@ public class GeneticSearch {
 		int[] chromozom = new int[geneNumber];
 		List<Integer> rozsahCisel = new ArrayList<Integer>();
 
-		// PRIDAJ DO LISTU CISLA OD 0 PO (OBVOD)
+		// PRIDAJ DO LISTU CISLA OD 1 PO (OBVOD)
 		for (int i = 1; i <= garden.getObvod(); i++) {
 			rozsahCisel.add(i);
 		}
@@ -222,16 +253,25 @@ public class GeneticSearch {
 	    return 0;	
 	}
 	
+	
+	
 	/**
 	 * Vrat jedinca z vyberu turnajom.
 	 * @param fitness Pole hodnot fitness jednotlivych jedincov.
+	 * @param three True ak je turnaj pre troch, inak false je turnaj pre dvoch.
 	 * @return jeden vybranyc jedinec.
 	 */
-	public int getFromTournament(int[] fitness){
+	public int getFromTournament(int[] fitness, boolean three){
 		int individual1=(int) (Math.random()*POPULATION_SIZE);
 		int individual2=(int) (Math.random()*POPULATION_SIZE);
 		
-		return fitness[individual1] > fitness[individual2] ? individual1 : individual2;
+		int max=fitness[individual1] > fitness[individual2] ? individual1 : individual2;
+		
+		if (three == true){
+			int individual3=(int) (Math.random()*POPULATION_SIZE);
+			max= fitness[individual3] > fitness[max] ? individual3 : max;
+		}
+		return max;
 	}
 	
 	
