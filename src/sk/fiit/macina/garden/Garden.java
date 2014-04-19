@@ -95,18 +95,18 @@ public class Garden {
 			number=number*(-1);
 		}
 		
-		if (number < m){
+		if (number <= m){
 			//rakeGarden(cislo ,0, number, 1, 0);
-			return new Coordinate(0, number, 1, 0, null);
-		} else if ( number < (polObvod) ){
+			return new Coordinate(0, number-1, 1, 0, null);
+		} else if ( number <= (polObvod) ){
 			//rakeGarden(cislo, number-m, m-1 , 0 , -1);
-			return new Coordinate(number-m, m-1 , 0, -1, null);
-		} else if ( number < (polObvod+n) ){
+			return new Coordinate(number-m-1, m-1 , 0, -1, null);
+		} else if ( number <= (polObvod+n) ){
 			//rakeGarden(cislo, number-polObvod, 0, 0, 1);
-			return new Coordinate(number-polObvod, 0, 0, 1, null);
+			return new Coordinate(number-polObvod-1, 0, 0, 1, null);
 		} else {
 			//rakeGarden(cislo, n-1, number-(polObvod+n), -1 , 0);
-			return new Coordinate(n-1, number-(polObvod+n) , -1 , 0, null);
+			return new Coordinate(n-1, number-(polObvod+n)-1 , -1 , 0, null);
 		}
 	}
 	
@@ -126,7 +126,7 @@ public class Garden {
 		if ( novaSur.dr != 0 ){			//NARAZILI SME A STUPALI SME PO RIADKOCH
 			novaSur.dr=0;
 			
-			if ( ( inBounds(novaSur.r, novaSur.s-1) && mapa[novaSur.r][novaSur.s-1]== PIESOK) && ( inBounds(novaSur.r, novaSur.s+1) && mapa[novaSur.r][novaSur.s+1]== PIESOK) ){			
+			if ( ( (inBounds(novaSur.r, novaSur.s-1) && mapa[novaSur.r][novaSur.s-1]== PIESOK) || !inBounds(novaSur.r, novaSur.s-1) ) && ( (inBounds(novaSur.r, novaSur.s+1) && mapa[novaSur.r][novaSur.s+1]== PIESOK) || !inBounds(novaSur.r, novaSur.s+1)) ){			
 				if ( gen < 0){										//OBE STRANY SU VOLNE, VYBER SI PODLA GENU
 					novaSur.s -= 1;
 					novaSur.ds = -1;
@@ -136,11 +136,11 @@ public class Garden {
 					novaSur.ds = +1;
 				}
 			}
-			else if ( !inBounds(novaSur.r, novaSur.s-1) || (inBounds(novaSur.r, novaSur.s-1) && mapa[novaSur.r][novaSur.s-1]==PIESOK) ){			//LEN DOLAVA
+			else if ( (inBounds(novaSur.r, novaSur.s-1) && mapa[novaSur.r][novaSur.s-1]==PIESOK ) ){			//LEN DOLAVA
 				novaSur.s -= 1;
 				novaSur.ds = -1;
 			}
-			else if ( !inBounds(novaSur.r, novaSur.s+1) || (inBounds(novaSur.r, novaSur.s+1) && mapa[novaSur.r][novaSur.s+1]==PIESOK) ){			//LEN DOPRAVA
+			else if ( (inBounds(novaSur.r, novaSur.s+1) && mapa[novaSur.r][novaSur.s+1]==PIESOK) ){			//LEN DOPRAVA
 				novaSur.s +=1;
 				novaSur.ds=+1;
 			}
@@ -150,7 +150,7 @@ public class Garden {
 		}
 		else if ( novaSur.ds != 0 ){					//NARAZILI SME A STUPALI SME PO STLPOCH
 			novaSur.ds=0;
-			if ( (inBounds(novaSur.r-1, novaSur.s) && mapa[novaSur.r-1][novaSur.s]== PIESOK) && (inBounds(novaSur.r+1, novaSur.s) && mapa[novaSur.r+1][novaSur.s]== PIESOK) ){			
+			if ( ((inBounds(novaSur.r-1, novaSur.s) && mapa[novaSur.r-1][novaSur.s]== PIESOK) || !inBounds(novaSur.r-1, novaSur.s)) && ((inBounds(novaSur.r+1, novaSur.s) && mapa[novaSur.r+1][novaSur.s]== PIESOK) || (!inBounds(novaSur.r+1, novaSur.s))) ){			
 				if ( gen < 0){							//OBE STRANY SU VOLNE, VYBER SI PODLA GENU
 					novaSur.r -= 1;
 					novaSur.dr =-1;
@@ -160,11 +160,11 @@ public class Garden {
 					novaSur.dr = +1;
 				}
 			}
-			else if ( !inBounds(novaSur.r-1, novaSur.s) || (inBounds(novaSur.r-1, novaSur.s) && mapa[novaSur.r-1][novaSur.s]==PIESOK) ){			//LEN HORE
+			else if ( (inBounds(novaSur.r-1, novaSur.s) && mapa[novaSur.r-1][novaSur.s]==PIESOK) ){			//LEN HORE
 				novaSur.r -= 1;
 				novaSur.dr = -1;
 			}
-			else if ( !inBounds(novaSur.r+1, novaSur.s) || (inBounds(novaSur.r+1, novaSur.s) && mapa[novaSur.r+1][novaSur.s]==PIESOK) ){			//LEN DOLE
+			else if ( (inBounds(novaSur.r+1, novaSur.s) && mapa[novaSur.r+1][novaSur.s]==PIESOK) ){			//LEN DOLE
 				novaSur.r += 1;
 				novaSur.dr = +1;
 			}

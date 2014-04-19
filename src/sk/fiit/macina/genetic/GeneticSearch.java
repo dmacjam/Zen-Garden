@@ -11,11 +11,11 @@ public class GeneticSearch {
 	public int geneNumber;
 	
 	int[][] population;
-	public final int POPULATION_SIZE = 300;
+	public final int POPULATION_SIZE = 150;
 	public final float CROSSOVER_RATE = 0.95f;
-	public final int GENERATIONS=500;
-	public final float MUTATION_RATE_MIN = 0.05f;
-	public final float MUTATION_RATE_MAX = 0.4f;
+	public final int GENERATIONS=5000;
+	public final float MUTATION_RATE_MIN = 0.02f;
+	public final float MUTATION_RATE_MAX = 0.3f;
 	
 	
 	public GeneticSearch(Garden garden) {
@@ -31,6 +31,7 @@ public class GeneticSearch {
 	 */
 	public void genetic(){
 		int[] fitnessValues=new int[POPULATION_SIZE];
+		long startTime=System.currentTimeMillis();
 		
 		//VYGENERUJ ZACIATOCNU POPULACIU
 		for(int i=0;i<POPULATION_SIZE;i++){
@@ -49,7 +50,7 @@ public class GeneticSearch {
 			for (int i = 0; i < POPULATION_SIZE; i++) {
 				fitnessValues[i] = garden.iterujCezCisla(population[i],false);
 			}
-
+			
 			// VYPOCET MAX A MIN HODNOT FITNESS
 			max = fitnessValues[0];
 			max_i = 0;
@@ -72,6 +73,8 @@ public class GeneticSearch {
 			if ( max == garden.pocetNaPohrabanie ){
 				garden.iterujCezCisla(population[max_i], true);
 				printChromosome(population[max_i]);
+				long endTime=System.currentTimeMillis();
+				System.out.println("\nCelkovy cas: "+(endTime-startTime)+" ms.");
 				break;
 			}
 			
@@ -128,7 +131,7 @@ public class GeneticSearch {
 			        for(int child=0;child<2;child++){
                         for(int j=0;j<geneNumber;j++){
                             if(Math.random() < mutationActuall ){
-                            	int mutationNumber=(int) (Math.random() * garden.getObvod());
+                            	int mutationNumber=(int) (Math.random() * (garden.getObvod()-1)) +1;
                             	if ( Math.random() < 0.5){		//S PRAVDEPODOBNOSTOU 50% ZMEN NA ZAPORNE
                             		mutationNumber *= -1; 
                             	}
@@ -181,7 +184,7 @@ public class GeneticSearch {
 		List<Integer> rozsahCisel = new ArrayList<Integer>();
 
 		// PRIDAJ DO LISTU CISLA OD 0 PO (OBVOD)
-		for (int i = 0; i < garden.getObvod(); i++) {
+		for (int i = 1; i <= garden.getObvod(); i++) {
 			rozsahCisel.add(i);
 		}
 
