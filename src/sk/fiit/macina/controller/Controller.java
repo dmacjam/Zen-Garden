@@ -26,10 +26,10 @@ public class Controller {
 		this.gs=new GeneticSearch(zahradka);
 		
 		
-		this.view=new View(zahradka.n,zahradka.m);
-		zahradka.setView(view);
-		zahradka.printFullMap();
-		gs.printSolutionGui();
+		//this.view=new View(zahradka.n,zahradka.m);
+		//zahradka.setView(view);
+		//zahradka.printFullMap();
+		//gs.printSolutionGui();
 	}
 	
 }

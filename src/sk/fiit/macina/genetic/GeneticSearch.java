@@ -26,7 +26,7 @@ public class GeneticSearch {
 	public final float CROSSOVER_RATE = 0.95f;
 	public final int GENERATIONS=5000;
 	public final float MUTATION_RATE_MIN = 0.02f;
-	public final float MUTATION_RATE_MAX = 0.3f;
+	public final float MUTATION_RATE_MAX = 0.35f;
 	//#################################################################################
 	
 	public GeneticSearch(Garden garden) {
@@ -309,7 +309,7 @@ public class GeneticSearch {
 	 * Vypis animaciu do GUI.
 	 */
 	public void printSolutionGui(){
-		garden.rakeGarden(solution, true,true);
+		garden.rakeGarden(solution, false,true);
 	}
 	
 	public int getCelkovoPopulacii(){
