@@ -2,7 +2,11 @@ package sk.fiit.macina.garden;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
+import sk.fiit.macina.view.View;;
 
 /**
  * Trieda reprezentujuca zahradku, funkcie na pohyb po zahradke...
@@ -10,14 +14,19 @@ import java.util.Scanner;
  *
  */
 public class Garden {
-	private int n,m;
+	public int n,m;
+	public View view;
 	public int[][] mapka;
 	public int polObvod;
 	public int pocet_kamenov;
 	public int pocetNaPohrabanie;
 	
-	static final int KAMEN = -1;
-	static final int PIESOK = 0;
+	public static final int KAMEN = -1;
+	public static final int PIESOK = 0;
+	
+	public Garden() {
+		// TODO Auto-generated constructor stub
+	}
 	
 	public Garden(File file) {	
 		readFromFile(file);
@@ -90,7 +99,7 @@ public class Garden {
 	}
 	
 	/**
-	 * Funkcia vracia na zakladne cisla number v parametri instanciu triedy Coordinate-suradnica.
+	 * Funkcia vracia na zakladne cisla number v parametri instanciu triedy Coordinate-suradnica, teda mapovanie cisla na okraj zahradky.
 	 * @param number
 	 * @return
 	 */
@@ -101,16 +110,12 @@ public class Garden {
 		}
 		
 		if (number <= m){
-			//rakeGarden(cislo ,0, number, 1, 0);
 			return new Coordinate(0, number-1, 1, 0, null);
 		} else if ( number <= (polObvod) ){
-			//rakeGarden(cislo, number-m, m-1 , 0 , -1);
 			return new Coordinate(number-m-1, m-1 , 0, -1, null);
 		} else if ( number <= (polObvod+n) ){
-			//rakeGarden(cislo, number-polObvod, 0, 0, 1);
 			return new Coordinate(number-polObvod-1, 0, 0, 1, null);
 		} else {
-			//rakeGarden(cislo, n-1, number-(polObvod+n), -1 , 0);
 			return new Coordinate(n-1, number-(polObvod+n)-1 , -1 , 0, null);
 		}
 	}
@@ -126,8 +131,7 @@ public class Garden {
 		Coordinate novaSur;
 		novaSur=new Coordinate(suradnica.r,suradnica.s,suradnica.dr,suradnica.ds,suradnica);
 		
-		//System.out.println("Naraz "+novaSur.toString());
-		
+		//LOGIKA
 		if ( novaSur.dr != 0 ){			//NARAZILI SME A STUPALI SME PO RIADKOCH
 			novaSur.dr=0;
 			
@@ -187,56 +191,98 @@ public class Garden {
 	 * @param chromozome Chromozom podla ktoreho sa hrabe.
 	 * @param vypis Ak je true, vykresli sa pohrabana zahradka.
 	 */
-	public int rakeGarden(int[] chromozome, boolean vypis){
-		//int[] cisla = {25,0,-33,-30,-32,-34,-37,-36,5,-13,39,15,43,-41,16 };
+	public int rakeGarden(int[] chromozome, boolean vypis, boolean gui){
 		Coordinate suradnica;
 		Coordinate novaSur;
 		Coordinate predchSur;
 		int poradiePrechodu=1;
+		List<Coordinate> prechody = null;
+		boolean uviaznutie=false;
 		
+		//SKOPIRUJ SI MAPKU, NEROB TO NA ORIGINALNEJ
 		int[][] mapa=copyOriginalMap();
 		
 
-		for(int i=0;i<chromozome.length;i++){
-			suradnica=getDirection(chromozome[i]);
-			
-			
-			if ( mapa[suradnica.r][suradnica.s] == 0) {
-				
-				while (inBounds( suradnica.r, suradnica.s )) {
-					
-					if ( mapa[suradnica.r][suradnica.s] != PIESOK ){
-						predchSur=suradnica.predch;
-						suradnica=getBumpDirection(suradnica.predch, chromozome[i], mapa);
-						
-						//AK SA VRATI NULL, TAK NASTALO UVIAZNUTIE
-						if (suradnica == null){
-							//System.out.println("Cislo "+cisla[i]+" uviazlo");
-							while (predchSur != null){
-								mapa[predchSur.r][predchSur.s]=0;
-								predchSur=predchSur.predch;
+		for (int i = 0; i < chromozome.length; i++) {
+			if (gui == true) {
+				prechody = new ArrayList<Coordinate>();
+			}
+
+			suradnica = getDirection(chromozome[i]);
+
+			// TEST CI MOZE VOJST DO ZAHRADKY
+			if (mapa[suradnica.r][suradnica.s] == 0) {
+
+				while (inBounds(suradnica.r, suradnica.s)) {
+
+					// NARAZ
+					if (mapa[suradnica.r][suradnica.s] != PIESOK) {
+						predchSur = suradnica.predch;
+						suradnica = getBumpDirection(suradnica.predch,
+								chromozome[i], mapa);
+
+						// AK SA VRATI NULL, TAK NASTALO UVIAZNUTIE
+						if (suradnica == null) {
+							// System.out.println("Cislo "+cisla[i]+" uviazlo");
+							while (predchSur != null) {
+								mapa[predchSur.r][predchSur.s] = 0;
+								predchSur = predchSur.predch;
 							}
+							uviaznutie = true;
 							break;
 						}
-						
-						//AK SA VRATILA SURADNICA MIMO,TAK SME VYSLI VON ZO ZAHRADY, JE TO OK
-						if ( !inBounds(suradnica.r, suradnica.s)){
+
+						// AK SA VRATILA SURADNICA MIMO,TAK SME VYSLI VON ZO ZAHRADY, JE TO OK
+						if (!inBounds(suradnica.r, suradnica.s)) {
 							break;
 						}
 					}
-					
+
+					if (gui == true)
+						prechody.add(suradnica);
+					// ZAZNAC PRECHOD DO ZAHRADKY
 					mapa[suradnica.r][suradnica.s] = poradiePrechodu;
-					novaSur=new Coordinate(suradnica.r + suradnica.dr, suradnica.s+suradnica.ds, suradnica.dr, suradnica.ds, suradnica);
-					suradnica=novaSur;
+					novaSur = new Coordinate(suradnica.r + suradnica.dr,
+							suradnica.s + suradnica.ds, suradnica.dr,
+							suradnica.ds, suradnica);
+					suradnica = novaSur;
 				}
-			 poradiePrechodu++;
+
+				if (gui == true && !uviaznutie) {
+					vypisGui(prechody, poradiePrechodu);
+				}
+
+				poradiePrechodu++;
+				uviaznutie = false;
+
 			}
 		}
 		
+		//VYPIS MAPKY DO KONZOLY
 		if ( vypis == true) {
 			printMap(mapa);
 		}
+		
 		return countRaked(mapa);
+	}
+	
+	/**
+	 * Vypis prechody postupne do GUI.
+	 * @param prechody
+	 * @param hodnota
+	 */
+	public void vypisGui(List<Coordinate> prechody, int hodnota){
+		for(Coordinate suradnica : prechody){
+			if (suradnica == null) System.out.println("TU");
+			view.setNumber(suradnica.r, suradnica.s, hodnota);
+			
+			try{
+	                Thread.sleep((int)200.0);
+	            } catch (InterruptedException ex){
+	            	System.out.println("Chyba thread sleep");
+	            }
+		}
+		
 	}
 	
 	
@@ -300,5 +346,24 @@ public class Garden {
 	public int getPocetNaPohrabanie(){
 		return pocetNaPohrabanie;
 	}
-
+	
+	/**
+	 * Metoda ktora zobrazi prazdnu mapku do GUI.
+	 */
+	public void printFullMap(){
+		for(int i=0;i<n;i++){
+			for(int j=0;j<m;j++){
+				if ( mapka[i][j] == KAMEN ) view.setNumber(i, j, mapka[i][j]);
+			}
+		}
+	}
+	
+	/**
+	 * Prirad instanciu view.
+	 * @param view
+	 */
+	public void setView(View view){
+		this.view=view;
+	}
+	
 }
